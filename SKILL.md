@@ -1,6 +1,13 @@
 ---
 name: quiz-me
-description: Quiz the user on work they did not fully do themselves (an agent's changes, a branch diff or PR, a plan, a module, a document, a concept) to find the gap between what they believe and what is actually there, before it costs them in review, in production or in a meeting. Use when the user asks to be examined, in any wording: "quiz me", "test me", "grill me", "check my understanding", "do I actually understand this", "would I pass review on this", "find my unknowns", "blind spot pass", or any request to be questioned on code, a diff, a plan or a doc. Not for ordinary review, explanation or "what am I missing" requests: answer those directly and offer a quiz at most once.
+description: >-
+  Quiz the user on work they did not fully do themselves (an agent's changes, a branch diff or PR, a
+  plan, a module, a document, a concept) to find the gap between what they believe and what is
+  actually there, before it costs them in review, in production or in a meeting. Use when the user
+  asks to be examined, in any wording: "quiz me", "test me", "grill me", "check my understanding", "do
+  I actually understand this", "would I pass review on this", "find my unknowns", "blind spot pass",
+  or any request to be questioned on code, a diff, a plan or a doc. Not for ordinary review,
+  explanation or "what am I missing" requests: answer those directly and offer a quiz at most once.
 argument-hint: "[session|diff|pr N|plan FILE|doc FILE|PATH|topic WORDS] [quick|deep|one|brief|mc|unknowns|random|retest]"
 allowed-tools: Read Grep Glob Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git show *) Bash(gh pr diff *) Bash(gh pr view *)
 ---
