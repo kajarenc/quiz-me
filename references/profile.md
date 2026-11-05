@@ -25,8 +25,10 @@ Bullets, most important first. Areas or properties that carry blast radius in th
 Bullets. Conventions and rules that are fair game in any quiz whose target touches them. Keep each one short enough to be a question.
 
 ## Defaults
-round_size: 5          # questions per round (quick = 3)
-gate: perfect          # perfect | none. "perfect" makes the close say whether the merge rule is met
+format: html           # html (a page, the default) | chat (the round in the conversation)
+round_size: 5          # questions per quiz or chat round (quick = 3, deep = 10)
+gate: perfect          # perfect | none. "perfect" makes the result say whether the merge rule is met
+quiz_dir: ~/.claude/quiz-me/quizzes   # where pages and their specs are written
 log: ~/.claude/quiz-me/log.md   # append one entry per quiz; omit to disable logging
 ```
 
@@ -54,6 +56,7 @@ A demanding senior reviewer on the data team: asks about the output contract, wh
 - Tests run through the project CLI, never bare pytest.
 
 ## Defaults
+format: html
 round_size: 5
 gate: perfect
 log: ~/.claude/quiz-me/log.md

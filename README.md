@@ -1,6 +1,6 @@
 # quiz-me
 
-A [Claude Code](https://code.claude.com) skill that turns the assistant from author into examiner. After an agent has written a change, a plan or a document for you, `/quiz-me` reads the work as it actually stands, asks you a few questions with real blast radius, marks your answers against the source with citations, and ends with a map of what you now know you did not know.
+A [Claude Code](https://code.claude.com) skill that turns the assistant from author into examiner. After an agent has written a change, a plan or a document for you, `/quiz-me` reads the work as it actually stands and builds a self-contained HTML page: a brief to read on top, a few questions with real blast radius at the bottom, answers and citations hidden until you commit each one, a live score, and a map of what you now know you did not know. Paste the page's results block back and the examiner re-checks any answer you dispute against the source.
 
 It exists because of a quiet failure mode of agentic work: the tests stay green while your understanding erodes. You merge code you could not explain, execute plans you skimmed, and sign off on documents from their table of contents. A quiz you have to pass is a cheap forcing function that keeps you accountable for work you did not type.
 
@@ -21,7 +21,7 @@ claude plugin marketplace add kajarenc/quiz-me
 claude plugin install quiz-me@kajarenc-quiz-me
 ```
 
-Pick one of the two per machine; installing both gives two copies of the same skill. The folder is in the open [Agent Skills](https://agentskills.io) format (one `SKILL.md` plus references), so other tools that read that format can use it too: put the folder where that tool looks for skills.
+Pick one of the two per machine; installing both gives two copies of the same skill. The folder is in the open [Agent Skills](https://agentskills.io) format (one `SKILL.md` plus references and a script), so other tools that read that format can use it too: put the folder where that tool looks for skills. The page builder needs only `python3` (3.8 or newer, no packages).
 
 ## Use
 
@@ -34,57 +34,33 @@ Pick one of the two per machine; installing both gives two copies of the same sk
 /quiz-me src/storage/         # a module as it stands
 /quiz-me topic "shard index"  # a concept, grounded in how this repo uses it
 
-/quiz-me diff quick           # 3 questions, one round
-/quiz-me diff deep            # keep going until the ranked list is exhausted
-/quiz-me diff one             # one question per message
-/quiz-me diff brief           # a short explainer first, then the quiz
+/quiz-me diff quick           # 3 questions instead of 5
+/quiz-me diff deep            # up to 10, until the ranked list is exhausted
+/quiz-me diff chat            # run the round in the conversation instead of a page
 /quiz-me unknowns src/auth/   # blind-spot pass before you start work in an area
 /quiz-me random notes.md      # three random details from a long document
-/quiz-me retest               # fresh questions on the gaps in your log
+/quiz-me retest               # fresh questions on the open gaps in your log
+/quiz-me results              # after pasting the page's results block
 ```
 
 Saying "quiz me on this before I open the PR" works as well as the slash command.
 
-### What a session looks like
+### What a quiz looks like
 
-```
-Round 1 — the upload retry change on branch feature/upload-retries
-Answer in your own words. "don't know" and "skip" are fine; "hint N" gets one hint.
+The examiner reads the work (diff, touched files, the code paths they rely on, the conversation for what was asked and claimed), then writes a page to `~/.claude/quiz-me/quizzes/<date>-<project>-<target>.html` and opens it:
 
-Q1 [recall] Retry default: I added retries to the shard upload without asking. How many
-   attempts, what backoff, and what happens after the last failure? (probes: a default
-   now in your code that nobody chose)
-Q2 [predict] Half-written shard: the third attempt fails. What does the index contain
-   afterwards, and which line decides? (probes: cleanup on the failure path)
-Q3 [judgement] Retry vs resume: the change retries instead of resuming a partial upload.
-   What does that buy, what does it cost? (probes: the tradeoff you will defend in review)
-```
+- **Brief** on top: context, what was done, the existing code paths it relies on, decisions made without an instruction, assumptions nothing checked, verified versus claimed. Collapsible, so you can take the quiz cold.
+- **Quiz** at the bottom: five questions, each typed `recall`, `predict` or `judgement`, with what it probes. You type an answer in your own words and commit it; only then does the page show the answer, where to verify it, and what a wrong belief puts at risk. You mark yourself correct, partial or wrong, or dispute the key. "Don't know" is an honest answer and becomes a gap.
+- **Result**: the score, whether your merge gate is met, the gap map (what to read to close each gap), what the examiner could not settle from the material, and the smallest next action.
+- **Copy results** produces a short text block. Paste it into Claude Code as `/quiz-me results` and the examiner re-checks disputed and partial answers against the source and logs the outcome.
 
-You answer. The examiner marks:
-
-```
-Q1 🟡 Three attempts, right; missing: the exception propagates and the shard stays
-   half-written — src/storage/upload.py:142-160
-Q2 ❌ The index is updated before the upload completes, so it names a shard that does
-   not exist. Risk if believed: readers fail on first read — src/storage/index.py:77
-Q3 ✅ Simpler and idempotent per attempt; costs re-sending the whole shard — upload.py:130
-
-Score: 1/3 (1 partial) — not a perfect pass
-
-Gap map, by risk:
-1. The index can point at a missing shard → every reader of this dataset → read index.py:70-90
-2. Failure after the last retry leaves a partial object → storage cost and confusing listings → upload.py:155
-
-Could not be settled from the material: whether the listing tool tolerates a missing shard (not documented)
-Smallest next action: move the index write after the upload confirms, then re-run the quiz.
-Did I miss anything you expected to be asked?
-```
+The page is a single local HTML file with no network calls. Your answers are kept in the browser's local storage so a reload does not lose them.
 
 Understanding is not verification: a perfect pass means you understand the change, not that it is correct. Tests, logs and review still decide that.
 
 ## Make it fit your work
 
-Two optional profile files tell the examiner what carries blast radius in your world: the reviewer to emulate, what to emphasise, rules you must know cold, and defaults (round size, whether the close reports a perfect-pass gate, a log path for `retest`).
+Two optional profile files tell the examiner what carries blast radius in your world: the reviewer to emulate, what to emphasise, rules you must know cold, and defaults (page or chat, question count, whether the result reports a perfect-pass gate, where pages go, a log path for `retest`).
 
 - Project: `.claude/quiz-me.md` in the repository root.
 - User: `~/.claude/quiz-me/profile.md`.
@@ -113,6 +89,7 @@ The examiner's contract, in one place:
 - Fix the expected answer and its citation before asking, so the bar cannot move.
 - Free-text answers in your own words; no multiple choice unless you ask for it.
 - Withhold answers until you commit; "don't know" is an honest answer and becomes a gap.
+- Nothing leaves the machine: the page is a local file with no network calls.
 - Mark every question with a citation, including the correct ones; partial is partial; the examiner can lose and says so; ambiguity in the material is a defect, not your error.
 - Close with the gap map and the smallest next action, not the score.
 

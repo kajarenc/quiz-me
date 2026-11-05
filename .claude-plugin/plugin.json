@@ -1,10 +1,19 @@
 {
   "name": "quiz-me",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Quiz yourself on work an agent did (a diff, PR, plan, module or document) to find the gap between what you believe and what is actually there.",
-  "author": { "name": "kajarenc", "url": "https://github.com/kajarenc" },
+  "author": {
+    "name": "kajarenc",
+    "url": "https://github.com/kajarenc"
+  },
   "repository": "https://github.com/kajarenc/quiz-me",
   "homepage": "https://github.com/kajarenc/quiz-me",
   "license": "MIT",
-  "keywords": ["quiz", "comprehension", "code-review", "learning", "agentic-coding"]
+  "keywords": [
+    "quiz",
+    "comprehension",
+    "code-review",
+    "learning",
+    "agentic-coding"
+  ]
 }
