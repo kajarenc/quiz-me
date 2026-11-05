@@ -1,0 +1,12 @@
+{
+  "name": "kajarenc-quiz-me",
+  "description": "Marketplace for the quiz-me skill.",
+  "owner": { "name": "kajarenc" },
+  "plugins": [
+    {
+      "name": "quiz-me",
+      "source": "./",
+      "description": "Quiz yourself on work an agent did (a diff, PR, plan, module or document) to find the gap between what you believe and what is actually there."
+    }
+  ]
+}
